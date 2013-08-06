@@ -6,3 +6,5 @@ After generating a passphrase, it will also generate a normal case-sensitive alp
 
 If you have any ideas for what word providers or what randomness sources to add, make a pull request or leave a comment.
 
+![Main screen](/Screenshot/Main.png)
+
