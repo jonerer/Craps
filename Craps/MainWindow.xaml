@@ -16,7 +16,7 @@
                     <TextBox x:Name="NumWordsInput" HorizontalAlignment="Left" Height="23" Margin="56,12,0,0" Text="5" VerticalAlignment="Top" Width="21"/>
                     <Button Content="Generate New" Margin="0,13,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Click="ButtonBase_OnClick" />
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True"  Text="{Binding PassphraseOutput}" HorizontalContentAlignment="Center" Margin="10,60,10,0" VerticalAlignment="Top" Height="77" FontSize="24"/>
-                    <Label Content="Equivalent password in alphanumeric:" HorizontalAlignment="Left" Margin="10,183,0,0" VerticalAlignment="Top" Width="218"/>
+                    <Label Content="Password of comparable strength:" HorizontalAlignment="Left" Margin="10,183,0,0" VerticalAlignment="Top" Width="218"/>
                     <TextBox Height="23" Margin="233,186,10,0" TextWrapping="Wrap" IsReadOnly="True" Text="{Binding AlphanumOutput}" ToolTip="{Binding AlphanumBitsText}" VerticalAlignment="Top" HorizontalContentAlignment="Right"/>
                     <Label Content="Strength" HorizontalAlignment="Left" Margin="9,157,0,0" VerticalAlignment="Top" Width="218"/>
                     <TextBox Height="23" Margin="233,158,10,0" TextWrapping="Wrap" IsReadOnly="True"  Text="{Binding NumBitsOutput}" HorizontalContentAlignment="Right" ToolTip="{Binding NumBitsTooltip}" VerticalAlignment="Top"/>
