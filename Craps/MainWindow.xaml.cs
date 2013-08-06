@@ -15,6 +15,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.SqlServer.Server;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Craps
 {
@@ -33,6 +35,15 @@ namespace Craps
 
         public string AlphanumOutput { get; set; }
         public string AlphanumBitsText { get; set; }
+
+        public string NumBitsOutput { get; set; }
+        public string NumBitsTooltip { get; set; }
+
+        public string TimeToCrack { get; set; }
+        public string TimeToCrackTooltip { get; set; }
+
+        public static long HashesPerSecond = (long) (8.2 * Math.Pow(10,9));
+        public static long HashesPerDay = HashesPerSecond*3600*24;
 
         public string WordSourceText
         {
@@ -85,14 +96,20 @@ namespace Craps
                 var randomness = RandomnessSourceList.SelectedItem as IRandomnessSource;
                 var wordsource = WordsSourceList.SelectedItem as IWordSource;
 
-
                 int wordsourceNumWords = wordsource.NumWords();
                 double perWord = Math.Log(wordsourceNumWords, 2);
                 double bits = words.Length * perWord;
 
                 GetWords(num, words, wordsource, randomness);
                 PassphraseOutput = String.Join(" ", words);
-                PassphraseBitsText = BitText(perWord, num, bits, wordsourceNumWords);
+
+                NumBitsOutput = String.Format("{0:0.##} bits", bits);
+                NumBitsTooltip = BitText(perWord, num, bits, wordsourceNumWords);
+                var numWords = new BigInteger(""+wordsourceNumWords);
+                var combinations = numWords.Pow(num);
+                BigInteger days = combinations.Divide(new BigInteger(""+HashesPerDay));
+                TimeToCrack = "" + days + " days";
+                TimeToCrackTooltip = "" + combinations + " combinations, " + HashesPerDay + " cracked per day.";
 
                 perWord = Math.Log(_alphanumSource.NumWords(), 2);
                 int alphWords = 0; //(int) Math.Ceiling((float)bits / perWord);
@@ -110,6 +127,10 @@ namespace Craps
                 NotifyPropertyChanged("PassphraseBitsText");
                 NotifyPropertyChanged("AlphanumOutput");
                 NotifyPropertyChanged("AlphanumBitsText");
+                NotifyPropertyChanged("NumBitsOutput");
+                NotifyPropertyChanged("NumBitsTooltip");
+                NotifyPropertyChanged("TimeToCrack");
+                NotifyPropertyChanged("TimeToCrackTooltip");
             }
         }
 
