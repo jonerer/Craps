@@ -8,6 +8,6 @@ If you have any ideas for what word providers or what randomness sources to add,
 
 ![Main screen](/Screenshot/Main.png)
 
-Binaries are in the Binaries folder.
+Binaries are in the Binary folder.
 To build, you'll have to copy the diceware*.txt-files from the Binary folder to wherever your build assembly appears (typically /Craps/Bin/Debug/)
 
