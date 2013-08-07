@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Craps.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="520" Width="466">
+        Title="Craps" Height="520" Width="466">
     <Grid Name="MainGrid">
         <Label Margin="17,10,10,0" VerticalAlignment="Top" Height="74" >
             <TextBlock Text="People have long been taught to choose passwords that are, in effect, hard for humans to remember but easy for computers to guess. This program is intended to do the opposite: help you choose a pass phrase that is easy to remember, but hard for a computer (or person) to guess." TextWrapping="Wrap"></TextBlock>
