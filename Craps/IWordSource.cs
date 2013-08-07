@@ -44,7 +44,16 @@ namespace Craps
 
     class AlphanumSource : IWordSource
     {
-        public static string Possible = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789";
+        public static string Possible = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        private static AlphanumSource _instance;
+
+        public static AlphanumSource Instance
+        {
+            get { if (_instance == null) _instance = new AlphanumSource();
+                return _instance; }
+            set { _instance = value; }
+        }
 
         public int NumWords()
         {

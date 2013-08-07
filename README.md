@@ -7,6 +7,7 @@ After generating a passphrase, it will also generate a normal case-sensitive alp
 If you have any ideas for what word providers or what randomness sources to add, make a pull request or leave a comment.
 
 ![Main screen](/Screenshot/Main.png)
+![Main screen](/Screenshot/Cracking.png)
 
 Binaries are in the Binary folder.
 To build, you'll have to copy the diceware*.txt-files from the Binary folder to wherever your build assembly appears (typically /Craps/Bin/Debug/)

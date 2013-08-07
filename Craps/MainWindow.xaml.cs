@@ -93,13 +93,12 @@ namespace Craps
             set { _wordsource = value; }
         }
 
-        // source should always be the currently used word source. 
-        // if the cracker's prior knowledge is alphanumeric, source not be used anyway.
-        public BigInteger CrackingCombinations(string[] words, IWordSource source)
+        // wordsource should always be the one used to generate the words.
+        public static BigInteger CrackingCombinations(string[] words, IWordSource source, PriorKnowledge prior)
         {
             int numChars = 0;
             int combinationsPerChar = 0;
-            if (PriorKnowledge == PriorKnowledge.Passphrase)
+            if (prior == PriorKnowledge.Passphrase)
             {
                 numChars = words.Length;
                 combinationsPerChar = source.NumWords();
@@ -107,7 +106,7 @@ namespace Craps
             else
             {
                 numChars = String.Join("", words).Length;
-                combinationsPerChar = _alphanumSource.NumWords();
+                combinationsPerChar = AlphanumSource.Instance.NumWords();
             }
             var perChar = new BigInteger("" + combinationsPerChar);
             return perChar.Pow(numChars);
@@ -117,7 +116,7 @@ namespace Craps
         { 
             HashesPerSecondPerGpu = (long) (82 * Math.Pow(10,8)); // a default value, taken from Peter Magnussons spreadsheet.
             NumWords = 5;
-            NumberOfGpus = 2;
+            NumberOfGpus = 1;
             PriorKnowledge = PriorKnowledge.Passphrase;
 
             var swe = new DicewareFileSource("diceware8k-sv.txt");
@@ -167,6 +166,12 @@ namespace Craps
             return s;
         }
 
+        public static string CrackingTimeNatural(BigInteger passCombos, long hashesPerSecond)
+        {
+            BigInteger seconds = passCombos.Divide(new BigInteger("" + hashesPerSecond));
+            return NaturalTime(seconds);
+        }
+
         private bool isDoingCrackingCalculations = false;
         private void DoCrackingCalculations()
         {
@@ -174,10 +179,8 @@ namespace Craps
             if (canDoCrackingCalculations)
             {
                 isDoingCrackingCalculations = true;
-                var combinations = CrackingCombinations(Words, Wordsource);
-                BigInteger seconds = combinations.Divide(new BigInteger("" + HashesPerSecond));
-
-                TimeToCrack = NaturalTime(seconds);
+                var combinations = CrackingCombinations(Words, Wordsource, PriorKnowledge);
+                TimeToCrack = CrackingTimeNatural(combinations, HashesPerSecond);
                 TimeToCrackTooltip = String.Format("{0:0,0} combinations, {1:0,0} cracked per day.", combinations, HashesPerDay);
                 NotifyPropertyChanged("TimeToCrack");
                 NotifyPropertyChanged("TimeToCrackTooltip");
@@ -270,5 +273,7 @@ namespace Craps
             int numWords = (WordsSourceList.SelectedItem as IWordSource).NumWords();
             WordSource = "This list contains " + numWords + " words. That's " + Math.Log(numWords, 2) + " bits per word.";
         }
+
+
     }
 }
