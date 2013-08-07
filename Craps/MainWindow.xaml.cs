@@ -58,6 +58,7 @@ namespace Craps
         }
 
         public long HashesPerDay { get { return HashesPerSecondPerGpu*3600*24 * NumberOfGpus; }}
+        public long HashesPerSecond { get { return HashesPerSecondPerGpu*3600 * NumberOfGpus; }}
 
         public int NumberOfGpus
         {
@@ -143,6 +144,29 @@ namespace Craps
             DoCrackingCalculations();
         }
 
+        public static string NaturalTime(BigInteger seconds)
+        {
+            var s = "";
+            if (seconds.CompareTo(new BigInteger("" + 60)) < 0)
+            {
+                s = seconds + " seconds";
+            } else if (seconds.CompareTo(new BigInteger(""+3600)) < 0)
+            {
+                s = seconds.Divide(new BigInteger("" + 60)) + " minutes";
+            } else if (seconds.CompareTo(new BigInteger(""+3600*24)) < 0)
+            {
+                s = seconds.Divide(new BigInteger(""+3600)) + " hours";
+            } else if (seconds.CompareTo(new BigInteger(""+3600*24*365)) < 0)
+            {
+                s = seconds.Divide(new BigInteger("" + 3600*24)) + " days";
+            }
+            else
+            {
+                s = seconds.Divide(new BigInteger("" + 3600*24*365)) + " years";
+            }
+            return s;
+        }
+
         private bool isDoingCrackingCalculations = false;
         private void DoCrackingCalculations()
         {
@@ -151,9 +175,9 @@ namespace Craps
             {
                 isDoingCrackingCalculations = true;
                 var combinations = CrackingCombinations(Words, Wordsource);
-                BigInteger days = combinations.Divide(new BigInteger("" + HashesPerDay));
+                BigInteger seconds = combinations.Divide(new BigInteger("" + HashesPerSecond));
 
-                TimeToCrack = "" + days + " days";
+                TimeToCrack = NaturalTime(seconds);
                 TimeToCrackTooltip = String.Format("{0:0,0} combinations, {1:0,0} cracked per day.", combinations, HashesPerDay);
                 NotifyPropertyChanged("TimeToCrack");
                 NotifyPropertyChanged("TimeToCrackTooltip");
