@@ -93,24 +93,6 @@ namespace Craps
             set { _wordsource = value; }
         }
 
-        // wordsource should always be the one used to generate the words.
-        public static BigInteger CrackingCombinations(string[] words, IWordSource source, PriorKnowledge prior)
-        {
-            int numChars = 0;
-            int combinationsPerChar = 0;
-            if (prior == PriorKnowledge.Passphrase)
-            {
-                numChars = words.Length;
-                combinationsPerChar = source.NumWords();
-            }
-            else
-            {
-                numChars = String.Join("", words).Length;
-                combinationsPerChar = AlphanumSource.Instance.NumWords();
-            }
-            var perChar = new BigInteger("" + combinationsPerChar);
-            return perChar.Pow(numChars);
-        }
 
         public MainWindow()
         { 
@@ -143,35 +125,6 @@ namespace Craps
             DoCrackingCalculations();
         }
 
-        public static string NaturalTime(BigInteger seconds)
-        {
-            var s = "";
-            if (seconds.CompareTo(new BigInteger("" + 60)) < 0)
-            {
-                s = seconds + " seconds";
-            } else if (seconds.CompareTo(new BigInteger(""+3600)) < 0)
-            {
-                s = seconds.Divide(new BigInteger("" + 60)) + " minutes";
-            } else if (seconds.CompareTo(new BigInteger(""+3600*24)) < 0)
-            {
-                s = seconds.Divide(new BigInteger(""+3600)) + " hours";
-            } else if (seconds.CompareTo(new BigInteger(""+3600*24*365)) < 0)
-            {
-                s = seconds.Divide(new BigInteger("" + 3600*24)) + " days";
-            }
-            else
-            {
-                s = seconds.Divide(new BigInteger("" + 3600*24*365)) + " years";
-            }
-            return s;
-        }
-
-        public static string CrackingTimeNatural(BigInteger passCombos, long hashesPerSecond)
-        {
-            BigInteger seconds = passCombos.Divide(new BigInteger("" + hashesPerSecond));
-            return NaturalTime(seconds);
-        }
-
         private bool isDoingCrackingCalculations = false;
         private void DoCrackingCalculations()
         {
@@ -179,8 +132,8 @@ namespace Craps
             if (canDoCrackingCalculations)
             {
                 isDoingCrackingCalculations = true;
-                var combinations = CrackingCombinations(Words, Wordsource, PriorKnowledge);
-                TimeToCrack = CrackingTimeNatural(combinations, HashesPerSecond);
+                var combinations = Utils.CrackingCombinations(Words, Wordsource, PriorKnowledge);
+                TimeToCrack = Utils.CrackingTimeNatural(combinations, HashesPerSecond);
                 TimeToCrackTooltip = String.Format("{0:0,0} combinations, {1:0,0} cracked per day.", combinations, HashesPerDay);
                 NotifyPropertyChanged("TimeToCrack");
                 NotifyPropertyChanged("TimeToCrackTooltip");
@@ -207,13 +160,13 @@ namespace Craps
                 double perWord = Math.Log(wordsourceNumWords, 2);
                 double bits = Words.Length * perWord;
 
-                GetWords(num, Words, Wordsource, randomness);
+                Utils.GetWords(num, Words, Wordsource, randomness);
                 PassphraseOutput = String.Join(" ", Words);
 
                 DoCrackingCalculations();
 
                 NumBitsOutput = String.Format("{0:0.##} bits", bits);
-                NumBitsTooltip = BitText(perWord, num, bits, wordsourceNumWords);
+                NumBitsTooltip = Utils.BitText(perWord, num, bits, wordsourceNumWords);
 
                 perWord = Math.Log(_alphanumSource.NumWords(), 2);
                 int alphWords = 0; //(int) Math.Ceiling((float)bits / perWord);
@@ -223,9 +176,9 @@ namespace Craps
                 }
                 var alphanumWords = new string[alphWords];
                 bits = alphWords*perWord;
-                GetWords(alphWords, alphanumWords, _alphanumSource, randomness);
+                Utils.GetWords(alphWords, alphanumWords, _alphanumSource, randomness);
                 AlphanumOutput = String.Join("", alphanumWords);
-                AlphanumBitsText = BitText(perWord, alphWords, bits, _alphanumSource.NumWords());
+                AlphanumBitsText = Utils.BitText(perWord, alphWords, bits, _alphanumSource.NumWords());
 
                 NotifyPropertyChanged("PassphraseOutput");
                 NotifyPropertyChanged("PassphraseBitsText");
@@ -234,26 +187,6 @@ namespace Craps
                 NotifyPropertyChanged("NumBitsOutput");
                 NotifyPropertyChanged("NumBitsTooltip");
 
-            }
-        }
-
-        protected static string BitText(double perWord, int num, double bits, int wordsourceNumWords)
-        {
-            var format = (NumberFormatInfo)CultureInfo.InvariantCulture.NumberFormat.Clone();
-            format.NumberGroupSeparator = " ";
-            format.NumberDecimalSeparator = ",";
-
-            var s =
-                "Randomness per word: {0:0.##} bits. That makes {1}*{2:0.##}={3:0.##} bits of randomness.\r\n(or {4:0,0} possible combinations).";
-            var formatted = String.Format(s, perWord, num, perWord, bits, Math.Pow(wordsourceNumWords, num));
-            return formatted;
-        }
-
-        private static void GetWords(int num, string[] words, IWordSource wordsource, IRandomnessSource randomness)
-        {
-            for (int i = 0; i < num; i++)
-            {
-                words[i] = wordsource.GetWord(randomness.NextRandom(0, wordsource.NumWords()));
             }
         }
 

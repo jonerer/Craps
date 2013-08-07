@@ -14,4 +14,4 @@ To build, you'll have to copy the diceware*.txt-files from the Binary folder to 
 
 Rev. 2
 ====
-Now lets the user define what equipment the cracker uses, and what prior knowledge she has. Does she know what word list it's built on, or does she think it's alphanumeric?
+Now lets the user define what equipment the cracker uses, and what prior knowledge she has. 
