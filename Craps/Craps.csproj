@@ -64,6 +64,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="EnumToBooleanConverter.cs" />
     <Compile Include="IRandomnessSource.cs" />
     <Compile Include="IWordSource.cs" />
     <Compile Include="MainWindow.xaml.cs">
@@ -72,6 +73,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PriorKnowledge.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

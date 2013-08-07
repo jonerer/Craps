@@ -1,6 +1,7 @@
 ﻿<Window x:Class="Craps.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:craps="clr-namespace:Craps"
         Title="Craps" Height="520" Width="466">
     <Grid Name="MainGrid">
         <Label Margin="17,10,10,0" VerticalAlignment="Top" Height="74" >
@@ -13,7 +14,7 @@
             <TabItem Header="Results">
                 <Grid>
                     <Label Content="Words:" HorizontalAlignment="Left" Margin="9,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="NumWordsInput" HorizontalAlignment="Left" Height="23" Margin="56,12,0,0" Text="5" VerticalAlignment="Top" Width="21"/>
+                    <TextBox x:Name="NumWordsInput" HorizontalAlignment="Left" Height="23" Margin="56,12,0,0" Text="{Binding NumWords, Mode=TwoWay}" VerticalAlignment="Top" Width="21"/>
                     <Button Content="Generate New" Margin="0,13,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="93" Click="ButtonBase_OnClick" />
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True"  Text="{Binding PassphraseOutput}" HorizontalContentAlignment="Center" Margin="10,60,10,0" VerticalAlignment="Top" Height="77" FontSize="24"/>
                     <Label Content="Password of comparable strength:" HorizontalAlignment="Left" Margin="10,183,0,0" VerticalAlignment="Top" Width="218"/>
@@ -43,8 +44,36 @@
             </TabItem>
             <TabItem Header="Cracking">
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Label Margin="10,10,244,31">Hashes per second per gpu</Label>
+                        <TextBox Text="{Binding HashesPerSecondPerGpu, Mode=TwoWay}" HorizontalAlignment="Right" Width="173" Height="23" VerticalAlignment="Top" Margin="0,10,10,0"/>
+                        <Label Content="Number of GPUs" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" Width="209"/>
+                        <TextBox Text="{Binding NumberOfGpus, Mode=TwoWay}" HorizontalAlignment="Right" Width="173" Height="23" VerticalAlignment="Top" Margin="0,38,10,0"/>
+                    </Grid>
+                <Grid Grid.Row="2">
+                    <Grid.Resources>
+                        <craps:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+                    </Grid.Resources>
+                    <GroupBox Header="Prior Knowledge" Height ="60">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <RadioButton Grid.Row="0" Content="Cracker uses alphanumeric" IsChecked="{Binding Path=PriorKnowledge, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static craps:PriorKnowledge.Alphanumeric}}" />
+                            <RadioButton Grid.Row="1" Content="Cracker knows word list" IsChecked="{Binding Path=PriorKnowledge, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static craps:PriorKnowledge.Passphrase}}"  />
+                        </Grid>
+                    </GroupBox>
+                </Grid>
                 </Grid>
             </TabItem>
+
         </TabControl>
 
 

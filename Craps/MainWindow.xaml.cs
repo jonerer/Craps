@@ -25,10 +25,17 @@ namespace Craps
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        private string _wordSourceText;
+        private string _wordSource;
         private AlphanumSource _alphanumSource;
+        private PriorKnowledge _priorKnowledge;
+        private long _hashesPerSecondPerGpu;
+        private int _numberOfGpus;
+        private IWordSource _wordsource;
         public List<IWordSource> WordSources { get; set; }
         public List<IRandomnessSource> RandomnessSources { get; set; }
+
+        public int NumWords { get; set; }
+        public string[] Words { get; set; }
 
         public string PassphraseOutput { get; set; }
         public string PassphraseBitsText { get; set; }
@@ -42,28 +49,76 @@ namespace Craps
         public string TimeToCrack { get; set; }
         public string TimeToCrackTooltip { get; set; }
 
-        public static long HashesPerSecond = (long) (8.2 * Math.Pow(10,9));
-        public static long HashesPerDay = HashesPerSecond*3600*24;
-
-        public string WordSourceText
+        public long HashesPerSecondPerGpu
         {
-            get { return _wordSourceText; }
-            set { _wordSourceText = value; NotifyPropertyChanged("WordSourceText");
+            get { return _hashesPerSecondPerGpu; }
+            set { _hashesPerSecondPerGpu = value;
+                NotifyPropertyChanged("HashesPerSecondPerGpu");
             }
+        }
+
+        public long HashesPerDay { get { return HashesPerSecondPerGpu*3600*24 * NumberOfGpus; }}
+
+        public int NumberOfGpus
+        {
+            get { return _numberOfGpus; }
+            set { _numberOfGpus = value; NotifyPropertyChanged("NumberOfGpus"); }
+        }
+
+        public PriorKnowledge PriorKnowledge
+        {
+            get { return _priorKnowledge; }
+            set { _priorKnowledge = value; NotifyPropertyChanged("PriorKnowledge"); }
+        }
+
+        public string WordSource
+        {
+            get { return _wordSource; }
+            set { _wordSource = value; NotifyPropertyChanged("WordSource"); }
         }
 
         public bool CanCreatePhrase
         {
             get
             {
-                int val = 0;
-                var success = int.TryParse(NumWordsInput.Text, out val);
-                return success && val > 0;
+                var val = NumWords;
+                return val > 0;
             }
         }
 
-        public MainWindow()
+        public IWordSource Wordsource
         {
+            get { return _wordsource; }
+            set { _wordsource = value; }
+        }
+
+        // source should always be the currently used word source. 
+        // if the cracker's prior knowledge is alphanumeric, source not be used anyway.
+        public BigInteger CrackingCombinations(string[] words, IWordSource source)
+        {
+            int numChars = 0;
+            int combinationsPerChar = 0;
+            if (PriorKnowledge == PriorKnowledge.Passphrase)
+            {
+                numChars = words.Length;
+                combinationsPerChar = source.NumWords();
+            }
+            else
+            {
+                numChars = String.Join("", words).Length;
+                combinationsPerChar = _alphanumSource.NumWords();
+            }
+            var perChar = new BigInteger("" + combinationsPerChar);
+            return perChar.Pow(numChars);
+        }
+
+        public MainWindow()
+        { 
+            HashesPerSecondPerGpu = (long) (82 * Math.Pow(10,8)); // a default value, taken from Peter Magnussons spreadsheet.
+            NumWords = 5;
+            NumberOfGpus = 2;
+            PriorKnowledge = PriorKnowledge.Passphrase;
+
             var swe = new DicewareFileSource("diceware8k-sv.txt");
             var eng = new DicewareFileSource("diceware8k.txt");
             WordSources = new List<IWordSource>();
@@ -79,6 +134,31 @@ namespace Craps
             InitializeComponent();
 
             MainGrid.DataContext = this;
+            PropertyChanged += OnPropertyChanged;
+        }
+
+        private void OnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
+        {
+            // redo the cracking calculations.
+            DoCrackingCalculations();
+        }
+
+        private bool isDoingCrackingCalculations = false;
+        private void DoCrackingCalculations()
+        {
+            var canDoCrackingCalculations = Words != null && WordSource != null && HashesPerDay != 0 && !isDoingCrackingCalculations;
+            if (canDoCrackingCalculations)
+            {
+                isDoingCrackingCalculations = true;
+                var combinations = CrackingCombinations(Words, Wordsource);
+                BigInteger days = combinations.Divide(new BigInteger("" + HashesPerDay));
+
+                TimeToCrack = "" + days + " days";
+                TimeToCrackTooltip = String.Format("{0:0,0} combinations, {1:0,0} cracked per day.", combinations, HashesPerDay);
+                NotifyPropertyChanged("TimeToCrack");
+                NotifyPropertyChanged("TimeToCrackTooltip");
+                isDoingCrackingCalculations = false;
+            }
         }
 
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
@@ -91,25 +171,22 @@ namespace Craps
         {
             if (CanCreatePhrase)
             {
-                int num = int.Parse(NumWordsInput.Text);
-                var words = new string[num];
+                int num = NumWords;
+                Words = new string[num];
                 var randomness = RandomnessSourceList.SelectedItem as IRandomnessSource;
-                var wordsource = WordsSourceList.SelectedItem as IWordSource;
+                Wordsource = WordsSourceList.SelectedItem as IWordSource;
 
-                int wordsourceNumWords = wordsource.NumWords();
+                int wordsourceNumWords = Wordsource.NumWords();
                 double perWord = Math.Log(wordsourceNumWords, 2);
-                double bits = words.Length * perWord;
+                double bits = Words.Length * perWord;
 
-                GetWords(num, words, wordsource, randomness);
-                PassphraseOutput = String.Join(" ", words);
+                GetWords(num, Words, Wordsource, randomness);
+                PassphraseOutput = String.Join(" ", Words);
+
+                DoCrackingCalculations();
 
                 NumBitsOutput = String.Format("{0:0.##} bits", bits);
                 NumBitsTooltip = BitText(perWord, num, bits, wordsourceNumWords);
-                var numWords = new BigInteger(""+wordsourceNumWords);
-                var combinations = numWords.Pow(num);
-                BigInteger days = combinations.Divide(new BigInteger(""+HashesPerDay));
-                TimeToCrack = "" + days + " days";
-                TimeToCrackTooltip = "" + combinations + " combinations, " + HashesPerDay + " cracked per day.";
 
                 perWord = Math.Log(_alphanumSource.NumWords(), 2);
                 int alphWords = 0; //(int) Math.Ceiling((float)bits / perWord);
@@ -117,10 +194,10 @@ namespace Craps
                 {
                     alphWords++;
                 }
-                words = new string[alphWords];
+                var alphanumWords = new string[alphWords];
                 bits = alphWords*perWord;
-                GetWords(alphWords, words, _alphanumSource, randomness);
-                AlphanumOutput = String.Join("", words);
+                GetWords(alphWords, alphanumWords, _alphanumSource, randomness);
+                AlphanumOutput = String.Join("", alphanumWords);
                 AlphanumBitsText = BitText(perWord, alphWords, bits, _alphanumSource.NumWords());
 
                 NotifyPropertyChanged("PassphraseOutput");
@@ -129,8 +206,7 @@ namespace Craps
                 NotifyPropertyChanged("AlphanumBitsText");
                 NotifyPropertyChanged("NumBitsOutput");
                 NotifyPropertyChanged("NumBitsTooltip");
-                NotifyPropertyChanged("TimeToCrack");
-                NotifyPropertyChanged("TimeToCrackTooltip");
+
             }
         }
 
@@ -168,7 +244,7 @@ namespace Craps
         private void WordsSourceList_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             int numWords = (WordsSourceList.SelectedItem as IWordSource).NumWords();
-            WordSourceText = "This list contains " + numWords + " words. That's " + Math.Log(numWords, 2) + " bits per word.";
+            WordSource = "This list contains " + numWords + " words. That's " + Math.Log(numWords, 2) + " bits per word.";
         }
     }
 }
